@@ -3,8 +3,8 @@
 Plugin Name: My Content Searcher
 Plugin URI: 
 Description: Searches through pages' content, ACF fields, and template files for specific content.
-Version: 1.0
-Author: Bradley Hughes
+Version: 1.1.0
+Author: Bradley Hughes & Jacob Gruber
 Author URI:
 */
 
