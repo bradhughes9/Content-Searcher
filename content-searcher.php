@@ -156,6 +156,8 @@ function handle_search_request()
     $search_type = isset($_POST['search_type']) ? sanitize_text_field($_POST['search_type']) : '';
     $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
 
+    $available_search_types = ['image', 'template', 'gravityform'];
+
     if ('image' === $search_type) {
         content_searcher_function($search_term, 'image');
     } elseif ('template' === $search_type) {
@@ -174,11 +176,12 @@ function content_searcher_function($search_term, $search_type)
     global $wpdb;
 
     if ('image' === $search_type) {
-
         // Create a new instance of the SingleImageSearch class
         $results = single_image_search($search_term, $wpdb);
     } elseif ('gravityform' === $search_type) {
         $results = single_form_search($search_term, $wpdb);
+    } elseif ('template' === $search_type) {
+        $results = single_template_search($search_term, $wpdb);
     } else {
         wp_send_json_error('Invalid search type');
         return;
