@@ -17,8 +17,9 @@ This plugin is currently in development and may not be suitable for use in produ
 
 ## Upcoming/Todo
 1. Break functions down into reusable parts.
-2. Make searching/parsing theme/plugin files into their own functions.
-3. How does the image search feature find images that are within templates??
+2. Properly enqueue and localize JS, and wp_enqueue_media().
+3. Make searching/parsing theme/plugin files into their own functions.
+4. How does the image search feature find images that are within templates??
 
 
 ## Contributing:
