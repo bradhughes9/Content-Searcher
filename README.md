@@ -15,7 +15,10 @@ This plugin is currently in development and may not be suitable for use in produ
 3. Activate the plugin through the 'Plugins' menu in WordPress.
 4. The plugin is located under the "Tools" option menu.
 
-## Upcoming
+## Upcoming/Todo
+1. Break functions down into reusable parts.
+2. Make searching/parsing theme/plugin files into their own functions.
+3. How does the image search feature find images that are within templates??
 
 
 ## Contributing:

@@ -7,13 +7,6 @@ Author: Digital Home Developers
 Author URI: https://digitalhomedevelopers.com
 */
 
-/**
- * Todo
- * Break Logic into smaller functions
- * Make searching/parsing theme/plugin files into their own functions.
- * 
- */
-
 $inc = plugin_dir_path(__FILE__) . 'includes/';
 $files = [
     'single-form-search',
