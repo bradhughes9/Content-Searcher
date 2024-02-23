@@ -7,6 +7,9 @@ Author: Digital Home Developers
 Author URI: https://digitalhomedevelopers.com
 */
 
+// Potentially create a list of the "used" images, allow the user to compress and download the unused images/media.
+// Then allow the user to delete the unused images/media from the media library.
+
 $inc = plugin_dir_path(__FILE__) . 'includes/';
 $files = [
     'single-form-search',
