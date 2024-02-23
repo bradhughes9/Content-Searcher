@@ -1,31 +1,31 @@
 <?php
 /*
-Plugin Name: My Content Searcher
-Plugin URI: 
+Plugin Name: Content Searcher
 Description: Searches through pages' content, ACF fields, and template files for specific content.
 Version: 1.1.0
-Author: Bradley Hughes & Jacob Gruber
-Author URI:
+Author: Digital Home Developers
+Author URI: https://digitalhomedevelopers.com
 */
 
 // Hook for adding admin menus
-add_action('admin_menu', 'my_content_searcher_menu');
+add_action('admin_menu', 'content_searcher_menu');
+
 // AJAX action for logged-in users
 add_action('wp_ajax_search_content', 'handle_search_request');
 
 // Add a new submenu under Settings
-function my_content_searcher_menu()
+function content_searcher_menu()
 {
-    add_options_page('My Content Searcher', 'Content Searcher', 'manage_options', 'my-content-searcher', 'my_content_searcher_admin_page');
+    add_options_page('Content Searcher', 'Content Searcher', 'manage_options', 'content-searcher', 'content_searcher_admin_page');
 }
 
 // Admin page content
-function my_content_searcher_admin_page()
+function content_searcher_admin_page()
 {
     wp_enqueue_media(); // Ensure the media uploader scripts are loaded.
 ?>
     <style>
-        .my-content-searcher-container {
+        .content-searcher-container {
             max-width: 750px;
             margin: 2rem auto;
             padding: 1.25rem;
@@ -33,15 +33,15 @@ function my_content_searcher_admin_page()
             box-shadow: 0 1px 3px rgba(0, 0, 0, .13);
         }
 
-        .my-content-searcher-container h2 {
+        .content-searcher-container h2 {
             color: #23282d;
             border-bottom: 1px solid #eee;
             padding-bottom: 0.3125rem;
             margin-bottom: 1.25rem;
         }
 
-        .my-content-searcher-input,
-        .my-content-searcher-button {
+        .content-searcher-input,
+        .content-searcher-button {
             width: 100%;
             padding: 0.5rem;
             line-height: 1.5;
@@ -49,7 +49,7 @@ function my_content_searcher_admin_page()
             margin-bottom: 0.625rem;
         }
 
-        .my-content-searcher-input {
+        .content-searcher-input {
             border: 1px solid #ddd;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, .07);
             background-color: #fff;
@@ -57,7 +57,7 @@ function my_content_searcher_admin_page()
             margin-right: 0.3125rem;
         }
 
-        .my-content-searcher-button {
+        .content-searcher-button {
             display: block;
             text-align: center;
             border-radius: 3px;
@@ -68,8 +68,8 @@ function my_content_searcher_admin_page()
             box-shadow: none;
         }
 
-        .my-content-searcher-button:hover,
-        .my-content-searcher-button:focus {
+        .content-searcher-button:hover,
+        .content-searcher-button:focus {
             background: #0073aa;
             color: #fff;
             outline: none;
@@ -131,18 +131,18 @@ function my_content_searcher_admin_page()
     </style>
 
     <div class="wrap">
-        <h2>My Content Searcher</h2>
+        <h2>Content Searcher</h2>
 
         <div class="selector-container">
             <!-- Image Selector -->
             <div class="image-selector-container">
-                <input id="image_url" class="my-content-searcher-input" type="text" placeholder="Image URL" readonly="readonly" />
+                <input id="image_url" class="content-searcher-input" type="text" placeholder="Image URL" readonly="readonly" />
                 <button id="upload_button" class="button">Select Image</button>
             </div>
 
             <!-- Template Selector -->
             <div class="template-selector-container">
-                <select id="template_selector" class="my-content-searcher-input">
+                <select id="template_selector" class="content-searcher-input">
                     <option value="">Select a Template</option>
                     <?php
                     // PHP code to generate template options
@@ -157,7 +157,7 @@ function my_content_searcher_admin_page()
 
             <!-- Gravity Forms Selector -->
             <div class="gravity-form-selector-container">
-                <select id="gravity_form_selector" class="my-content-searcher-input">
+                <select id="gravity_form_selector" class="content-searcher-input">
                     <option value="">Select a Gravity Form</option>
                     <?php
                     // PHP code to generate Gravity Forms options
@@ -172,10 +172,10 @@ function my_content_searcher_admin_page()
             </div>
 
             <!-- Common Search Button -->
-            <button id="search_button" class="my-content-searcher-button">Search</button>
+            <button id="search_button" class="content-searcher-button">Search</button>
 
             <!-- Clear Button -->
-            <button id="clear_button" class="my-content-searcher-button">Clear</button>
+            <button id="clear_button" class="content-searcher-button">Clear</button>
         </div>
 
         <!-- Search Results -->
@@ -265,11 +265,11 @@ function handle_search_request()
     $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
 
     if ('image' === $search_type) {
-        my_content_searcher_function($search_term, 'image');
+        content_searcher_function($search_term, 'image');
     } elseif ('template' === $search_type) {
-        my_content_searcher_function($search_term, 'template');
+        content_searcher_function($search_term, 'template');
     } elseif ('gravityform' === $search_type) {
-        my_content_searcher_function($search_term, 'gravityform');
+        content_searcher_function($search_term, 'gravityform');
     } else {
         wp_send_json_error('Invalid search type');
     }
@@ -277,7 +277,7 @@ function handle_search_request()
     wp_die(); // Required to terminate immediately and return a proper response
 }
 
-function my_content_searcher_function($search_term, $search_type)
+function content_searcher_function($search_term, $search_type)
 {
     global $wpdb; // Global WordPress database access
 
@@ -325,7 +325,6 @@ function my_content_searcher_function($search_term, $search_type)
             }
         }
 
-        // Inside your my_content_searcher_function, adjust the results generation part
         $results = !empty($posts_with_image) ? '<ul class="search-results-list">' : 'No posts found with the specified image.';
 
         foreach ($posts_with_image as $item) {
