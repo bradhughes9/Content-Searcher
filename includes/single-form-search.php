@@ -1,5 +1,8 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    die;
+}
 
 function render_form_selector_tab()
 {

@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    die;
+}
+
 function render_image_selector_tab () {
     ?>
     <div id="image-selector-tab" class="tab active">

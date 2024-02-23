@@ -1,5 +1,10 @@
 <?php
 
+// Add security
+if (!defined('ABSPATH')) {
+    die;
+}
+
 function render_template_selector_tab () {
     ?>
     <div class="tab" id="template-selector-tab">

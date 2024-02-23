@@ -10,7 +10,7 @@ Author URI: https://digitalhomedevelopers.com
 /**
  * Todo
  * Break Logic into smaller functions
- * Make search themes, plugins, into their own functions.
+ * Make searching/parsing theme/plugin files into their own functions.
  * 
  */
 
