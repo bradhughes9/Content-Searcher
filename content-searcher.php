@@ -7,170 +7,69 @@ Author: Digital Home Developers
 Author URI: https://digitalhomedevelopers.com
 */
 
+/**
+ * Todo
+ * Break Logic into smaller functions
+ * Make search themes, plugins, into their own functions.
+ * 
+ */
+
+$inc = plugin_dir_path(__FILE__) . 'includes/';
+$files = [
+    'single-form-search',
+    'single-image-search',
+    'single-template-search'
+];
+
+foreach ($files as $file) {
+    require_once $inc . $file . '.php';
+}
+
 // Hook for adding admin menus
 add_action('admin_menu', 'content_searcher_menu');
 
 // AJAX action for logged-in users
 add_action('wp_ajax_search_content', 'handle_search_request');
 
-// Add a new submenu under Settings
+// Add a new submenu under Tools
 function content_searcher_menu()
 {
-    add_options_page('Content Searcher', 'Content Searcher', 'manage_options', 'content-searcher', 'content_searcher_admin_page');
+    add_management_page('Content Searcher', 'Content Searcher', 'manage_options', 'content-searcher', 'content_searcher_admin_page');
 }
+
+// enqueue scripts and styles
+function content_searcher_enqueue_scripts()
+{
+    wp_enqueue_style('content-searcher-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css');
+    wp_enqueue_script('content-searcher-scripts', plugin_dir_url(__FILE__) . 'assets/js/content-searcher.js', array('jquery'), '1.0.0', true);
+}
+add_action('admin_enqueue_scripts', 'content_searcher_enqueue_scripts');
+
+
 
 // Admin page content
 function content_searcher_admin_page()
 {
     wp_enqueue_media(); // Ensure the media uploader scripts are loaded.
 ?>
-    <style>
-        .content-searcher-container {
-            max-width: 750px;
-            margin: 2rem auto;
-            padding: 1.25rem;
-            background: #fff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .13);
-        }
 
-        .content-searcher-container h2 {
-            color: #23282d;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 0.3125rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .content-searcher-input,
-        .content-searcher-button {
-            width: 100%;
-            padding: 0.5rem;
-            line-height: 1.5;
-            font-size: 1rem;
-            margin-bottom: 0.625rem;
-        }
-
-        .content-searcher-input {
-            border: 1px solid #ddd;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, .07);
-            background-color: #fff;
-            color: #32373c;
-            margin-right: 0.3125rem;
-        }
-
-        .content-searcher-button {
-            display: block;
-            text-align: center;
-            border-radius: 3px;
-            background: #0085ba;
-            color: #fff;
-            cursor: pointer;
-            border: none;
-            box-shadow: none;
-        }
-
-        .content-searcher-button:hover,
-        .content-searcher-button:focus {
-            background: #0073aa;
-            color: #fff;
-            outline: none;
-        }
-
-        .search-results-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .search-results-list li {
-            margin: 0.625rem 0;
-            padding: 0.3125rem;
-            background-color: #f9f9f9;
-            border-left: 4px solid #0073aa;
-        }
-
-        .search-results-list li a {
-            text-decoration: none;
-            color: #0073aa;
-            display: block;
-            padding: 0.3125rem;
-        }
-
-        .search-results-list li a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .selector-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            /* Space between elements */
-        }
-
-        .selector-container>div,
-        .selector-container>button {
-            width: 100%;
-            /* Full width for mobile */
-        }
-
-        @media (min-width: 768px) {
-
-            /* Adjust breakpoint as needed */
-            .selector-container {
-                flex-direction: row;
-                align-items: flex-start;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                /* Reduced gap for larger screens */
-            }
-
-            .selector-container>div,
-            .selector-container>button {
-                flex: 1 1 auto;
-                /* Flex grow and basis auto */
-            }
-        }
-    </style>
 
     <div class="wrap">
-        <h2>Content Searcher</h2>
+        <div id="selector-container" class="tab-group">
 
-        <div class="selector-container">
-            <!-- Image Selector -->
-            <div class="image-selector-container">
-                <input id="image_url" class="content-searcher-input" type="text" placeholder="Image URL" readonly="readonly" />
-                <button id="upload_button" class="button">Select Image</button>
-            </div>
+            <?php
 
-            <!-- Template Selector -->
-            <div class="template-selector-container">
-                <select id="template_selector" class="content-searcher-input">
-                    <option value="">Select a Template</option>
-                    <?php
-                    // PHP code to generate template options
-                    $templates = glob(get_template_directory() . '/template-*.php');
-                    foreach ($templates as $template) {
-                        $template_name = basename($template);
-                        echo "<option value='{$template_name}'>{$template_name}</option>";
-                    }
-                    ?>
-                </select>
-            </div>
+            render_image_selector_tab();
 
-            <!-- Gravity Forms Selector -->
-            <div class="gravity-form-selector-container">
-                <select id="gravity_form_selector" class="content-searcher-input">
-                    <option value="">Select a Gravity Form</option>
-                    <?php
-                    // PHP code to generate Gravity Forms options
-                    if (class_exists('GFFormsModel')) {
-                        $forms = GFFormsModel::get_forms();
-                        foreach ($forms as $form) {
-                            echo "<option value='[gravityform id=\"" . absint($form->id) . "\" title=\"true\"]'>" . esc_html($form->title) . "</option>";
-                        }
-                    }
-                    ?>
-                </select>
-            </div>
+            render_form_selector_tab();
 
+            render_template_selector_tab();
+
+            ?>
+
+        </div>
+
+        <div class="btn-container">
             <!-- Common Search Button -->
             <button id="search_button" class="content-searcher-button">Search</button>
 
@@ -279,126 +178,14 @@ function handle_search_request()
 
 function content_searcher_function($search_term, $search_type)
 {
-    global $wpdb; // Global WordPress database access
-
-    $posts_with_image = array();
-    $pages_with_template = array();
-    $pages_with_form = array();
+    global $wpdb;
 
     if ('image' === $search_type) {
-        // Reduce the specificity of the search term for the image URL.
-        $search_basename = wp_basename($search_term); // Gets the filename part of the URL
-        $search_basename_no_ext = preg_replace('/\\.[^.\\s]{3,4}$/', '', $search_basename); // Remove the file extension
-        $like_pattern = '%' . $wpdb->esc_like($search_basename_no_ext) . '%'; // Prepare for LIKE query
 
-        // Search in post content with adjusted like_pattern, excluding revisions
-        $posts = $wpdb->get_results($wpdb->prepare(
-            "
-            SELECT ID, post_title FROM $wpdb->posts 
-            WHERE post_status = 'publish' 
-            AND post_type NOT IN ('revision') 
-            AND post_content LIKE %s",
-            $like_pattern
-        ));
-
-        foreach ($posts as $post) {
-            $posts_with_image[] = "Post ID: {$post->ID}, Title: {$post->post_title}, Found in Content";
-        }
-
-        // Search in ACF fields with adjusted like_pattern, also considering only non-revision posts
-        $meta_posts = $wpdb->get_results($wpdb->prepare(
-            "
-            SELECT post_id FROM $wpdb->postmeta 
-            JOIN $wpdb->posts ON $wpdb->posts.ID = $wpdb->postmeta.post_id
-            WHERE $wpdb->posts.post_status = 'publish' 
-            AND $wpdb->posts.post_type NOT IN ('revision') 
-            AND meta_value LIKE %s",
-            $like_pattern
-        ));
-
-        foreach ($meta_posts as $meta_post) {
-            $post_title = get_the_title($meta_post->post_id);
-            // To avoid duplicate entries, check if this post ID is already in the array
-            $unique_id_title = "Post ID: {$meta_post->post_id}, Title: {$post_title}, Found in ACF";
-            if (!in_array($unique_id_title, $posts_with_image)) {
-                $posts_with_image[] = $unique_id_title;
-            }
-        }
-
-        $results = !empty($posts_with_image) ? '<ul class="search-results-list">' : 'No posts found with the specified image.';
-
-        foreach ($posts_with_image as $item) {
-            // Assuming $item is like "Post ID: {$post->ID}, Title: {$post->post_title}, Found in Content"
-            preg_match('/Post ID: (\d+), Title: ([^,]+),/', $item, $matches);
-            $post_id = $matches[1];
-            $post_title = $matches[2];
-            $edit_link = get_edit_post_link($post_id);
-            $results .= "<li><a target='_blank' href='{$edit_link}'>{$post_title}</a></li>";
-        }
-
-        if (!empty($posts_with_image)) {
-            $results .= '</ul>';
-        }
-    } elseif ('template' === $search_type) {
-        // First, check if the search is for the 'front-page.php' template
-        if ($search_term === 'front-page.php') {
-            $front_page_id = get_option('page_on_front'); // Get the static front page ID
-            if ($front_page_id) {
-                $post_title = get_the_title($front_page_id);
-                $pages_with_template[] = "Page ID: {$front_page_id}, Title: {$post_title}, Using front-page.php";
-            }
-        }
-
-        // Continue with the normal template search logic
-        $pages = $wpdb->get_results($wpdb->prepare(
-            "
-            SELECT post_id FROM $wpdb->postmeta 
-            WHERE meta_key = '_wp_page_template' 
-            AND meta_value = %s",
-            $search_term
-        ));
-
-        foreach ($pages as $page) {
-            $post_title = get_the_title($page->post_id);
-            $pages_with_template[] = "Page ID: {$page->post_id}, Title: {$post_title}";
-        }
-
-        // Combine results and format them
-        $results = !empty($pages_with_template) ? '<ul class="search-results-list">' : 'No pages found using the specified template.';
-        foreach ($pages_with_template as $item) {
-            preg_match('/Page ID: (\d+), Title: ([^,]+)/', $item, $matches);
-            $page_id = $matches[1];
-            $page_title = $matches[2];
-            $edit_link = get_edit_post_link($page_id);
-            $results .= "<li><a target='_blank' href='{$edit_link}'>{$page_title}</a></li>";
-        }
-        if (!empty($pages_with_template)) {
-            $results .= '</ul>';
-        }
+        // Create a new instance of the SingleImageSearch class
+        $results = single_image_search($search_term, $wpdb);
     } elseif ('gravityform' === $search_type) {
-        // Prepare the LIKE pattern for searching Gravity Forms shortcodes
-        $like_pattern = '%' . $wpdb->esc_like('[gravityform') . '%';
-
-        // Log the prepared statement to the debug log
-        error_log('Prepared query: ' . $wpdb->prepare("SELECT ID, post_title FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'page' AND post_content LIKE %s", $like_pattern));
-
-        // Execute the query
-        $posts = $wpdb->get_results($wpdb->prepare(
-            "SELECT ID, post_title FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'page' AND post_content LIKE %s",
-            $like_pattern
-        ));
-
-        // Log the query results
-        error_log('Query results: ' . print_r($posts, true));
-
-        // Process the results
-        foreach ($posts as $post) {
-            $edit_link = get_edit_post_link($post->ID);
-            $pages_with_form[] = "<li><a target='_blank' href='{$edit_link}'>{$post->post_title}</a></li>";
-        }
-
-        // Prepare the final results output
-        $results = !empty($pages_with_form) ? '<ul class="search-results-list">' . implode('', $pages_with_form) . '</ul>' : 'No pages found with a Gravity Form.';
+        $results = single_form_search($search_term, $wpdb);
     } else {
         wp_send_json_error('Invalid search type');
         return;
