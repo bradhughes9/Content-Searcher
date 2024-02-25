@@ -62,9 +62,8 @@ jQuery(document).ready(function ($) {
         $.ajax({
             url: ContentSearcherData.ajax_url,
             type: 'POST',
-            data: data, // Pass the adjusted data object
+            data: data,
             success: function(response) {
-                // Display search results
                 $('#search_results').html(response.data);
             },
             error: function(error) {

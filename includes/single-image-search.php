@@ -48,37 +48,36 @@ function single_image_search($search_term, $search_id, $wpdb)
         }
     }
 
-if (!empty($search_id)) {
-    // Prepare the SQL statement with placeholders
-    $prepare_statement = $wpdb->prepare();
+    // working
+    if (!empty($search_id)) {
 
+        error_log('Search ID: ' . $search_id);
 
-
-        // Search in post content for block-embedded image IDs
-        $id_posts = $wpdb->get_results($prepare_statement);
-        error_log(print_r($id_posts, true));
-        foreach ($id_posts as $id_post) {
-            $unique_id_title = "Post ID: {$id_post->ID}, Title: {$id_post->post_title}, Found with ID in Block";
-            if (!in_array($unique_id_title, $posts_with_image)) {
-                $posts_with_image[] = $unique_id_title;
-            }
-        }
-
-        // Additionally, search in postmeta for the image ID
-        $meta_posts = $wpdb->get_results($wpdb->prepare(
-            "SELECT post_id FROM $wpdb->postmeta 
-            WHERE meta_value = %s",
-            $search_id
+        // make a new wp query, we are going to get the post_content from all the posts and parse through them
+        $query = new WP_Query(array(
+            'post_type' => 'any',
+            'post_status' => 'publish',
+            'posts_per_page' => -1
         ));
 
-        foreach ($meta_posts as $meta_post) {
-            $post_title = get_the_title($meta_post->post_id);
-            $unique_id_title = "Post ID: {$meta_post->post_id}, Title: {$post_title}, Found in Post Meta";
+        while ($query->have_posts()) {
+            $query->the_post();
+            $post_id = get_the_ID();
+            $post_content = get_the_content();
+            $post_title = get_the_title();
 
-            if (!in_array($unique_id_title, $posts_with_image)) {
-                $posts_with_image[] = $unique_id_title;
+            // check if the image is in the post_content
+            if (strpos($post_content, $search_id) !== false) {
+                // error log the the part of the post content where the id was found
+                error_log('Post Content: ' . $post_content);
+                $posts_with_image[] = "Post ID: {$post_id}, Title: {$post_title}, Found in Content";
             }
         }
+
+        wp_reset_postdata();
+
+
+        
     }
 
     // Compile and return results

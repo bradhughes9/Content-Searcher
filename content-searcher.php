@@ -24,16 +24,15 @@ foreach ($files as $file) {
 // Hook for adding admin menus
 add_action('admin_menu', 'content_searcher_menu');
 
-// AJAX action for logged-in users
-add_action('wp_ajax_search_content', 'handle_search_request');
-
 // Add a new submenu under Tools
 function content_searcher_menu()
 {
     add_management_page('Content Searcher', 'Content Searcher', 'manage_options', 'content-searcher', 'content_searcher_admin_page');
 }
 
-// enqueue scripts and styles
+add_action('wp_ajax_search_content', 'handle_search_request');
+add_action('wp_ajax_nopriv_search_content', 'handle_search_request'); // If needed, for users not logged in
+
 function content_searcher_enqueue_scripts()
 {
     wp_enqueue_script('content-searcher-ajax', plugin_dir_url(__FILE__) . 'assets/js/ajax.js', array('jquery'), '1.0.0', true);
@@ -61,13 +60,9 @@ function content_searcher_admin_page()
         <div id="selector-container" class="tab-group">
 
             <?php
-
             render_image_selector_tab();
-
             render_form_selector_tab();
-
             render_template_selector_tab();
-
             ?>
 
         </div>
@@ -94,6 +89,11 @@ function content_searcher_admin_page()
 // Handle AJAX request
 function handle_search_request()
 {
+
+    if ( !wp_verify_nonce($_POST['nonce'], 'content_searcher_nonce') ) {
+        wp_die('Nonce verification failed!', '', 403);
+    }
+
     global $wpdb;
     // Security checks, e.g., check nonce here
 
