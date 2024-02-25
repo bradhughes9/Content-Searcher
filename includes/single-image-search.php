@@ -22,62 +22,51 @@ function render_image_selector_tab()
 }
 
 
+function cs_parse_post_content_for_item($id = null, $url = '')
+{
+
+    $posts_with_item = [];
+
+    $query = new WP_Query(array(
+        'post_type' => 'any',
+        'post_status' => 'publish',
+        'posts_per_page' => -1
+    ));
+
+    while ($query->have_posts()) {
+        $query->the_post();
+        $post_id = get_the_ID();
+        $post_content = get_the_content();
+        $post_title = get_the_title();
+
+        if (strpos($post_content, $id) !== false) {
+            error_log('found id in content: ' . $id);
+            // error log the post id
+            error_log('post id: ' . $post_id);
+            $posts_with_item[] = "Post ID: {$post_id}, Title: {$post_title}, Found in Content";
+        }
+
+        if (strpos($post_content, $url) !== false) {
+            error_log('found url in content: ' . $url);
+            error_log('post id: ' . $post_id);
+            $posts_with_item[] = "Post ID: {$post_id}, Title: {$post_title}, Found in Content";
+        }
+    }
+    wp_reset_postdata();
+
+    return $posts_with_item;
+}
+
+
 function single_image_search($search_term, $search_id, $wpdb)
 {
 
     $posts_with_image = [];
-    $search_term = sanitize_text_field($search_term);
-    $search_term = esc_url($search_term);
-
-    $search_basename = wp_basename($search_term);
-    $search_basename_no_ext = preg_replace('/\\.[^.\\s]{3,4}$/', '', $search_basename);
-    $like_pattern = '%' . $wpdb->esc_like($search_basename_no_ext) . '%';
-
-    // Search in post content for the URL pattern
-    if (!empty($search_term)) {
-        $posts = $wpdb->get_results($wpdb->prepare(
-            "SELECT ID, post_title FROM $wpdb->posts 
-            WHERE post_status = 'publish' 
-            AND post_type NOT IN ('revision') 
-            AND post_content LIKE %s",
-            $like_pattern
-        ));
-
-        foreach ($posts as $post) {
-            $posts_with_image[] = "Post ID: {$post->ID}, Title: {$post->post_title}, Found in Content";
-        }
-    }
 
     // working
     if (!empty($search_id)) {
-
-        error_log('Search ID: ' . $search_id);
-
-        // make a new wp query, we are going to get the post_content from all the posts and parse through them
-        $query = new WP_Query(array(
-            'post_type' => 'any',
-            'post_status' => 'publish',
-            'posts_per_page' => -1
-        ));
-
-        while ($query->have_posts()) {
-            $query->the_post();
-            $post_id = get_the_ID();
-            $post_content = get_the_content();
-            $post_title = get_the_title();
-
-            // check if the image is in the post_content
-            if (strpos($post_content, $search_id) !== false) {
-                // error log the the part of the post content where the id was found
-                error_log('Post Content: ' . $post_content);
-                $posts_with_image[] = "Post ID: {$post_id}, Title: {$post_title}, Found in Content";
-            }
-        }
-
-        wp_reset_postdata();
-
-
-        
+        // cs_parse_post_content_for_item($search_id);
+        $posts_with_image = array_merge($posts_with_image, cs_parse_post_content_for_item($search_id, $search_term));
     }
 
     // Compile and return results

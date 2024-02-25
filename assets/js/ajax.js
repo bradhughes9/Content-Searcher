@@ -28,13 +28,18 @@ jQuery(document).ready(function ($) {
     $('#search_button').click(function () {
         var searchType = $('#template_selector').val() ? 'template' :
             ($('#gravity_form_selector').val() ? 'gravityform' : 'image');
+
         // Update to include image ID in the search term when the search type is 'image'
         var searchTerm = searchType === 'image' ? { url: $('#image_url').val(), id: $('#image_id').val() } :
             (searchType === 'template' ? $('#template_selector').val() :
                 $('#gravity_form_selector').val());
 
+        console.log(searchType, searchTerm);
+
         triggerSearch(searchType, searchTerm);
     });
+
+
     // Clear Button Click Event
     $('#clear_button').click(function () {
         // Clear the input fields and search results
@@ -51,25 +56,25 @@ jQuery(document).ready(function ($) {
             search_type: searchType,
             nonce: ContentSearcherData.nonce
         };
-    
+
         if (searchType === 'image') {
             data.search_url = searchTerm.url;
             data.search_id = searchTerm.id;
         } else {
             data.search_term = searchTerm;
         }
-    
+
         $.ajax({
             url: ContentSearcherData.ajax_url,
             type: 'POST',
             data: data,
-            success: function(response) {
+            success: function (response) {
                 $('#search_results').html(response.data);
             },
-            error: function(error) {
+            error: function (error) {
                 console.log(error);
             }
         });
     }
-    
+
 });

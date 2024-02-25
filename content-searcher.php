@@ -99,6 +99,7 @@ function handle_search_request()
 
     $search_type = isset($_POST['search_type']) ? sanitize_text_field($_POST['search_type']) : '';
     $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
+    $search_url = isset($_POST['search_url']) ? sanitize_text_field($_POST['search_url']) : '';
     $search_id = isset($_POST['search_id']) ? sanitize_text_field($_POST['search_id']) : '';
 
     // error_log('Search Type: ' . $search_type);
@@ -109,7 +110,7 @@ function handle_search_request()
 
     if ('image' === $search_type) {
         // content_searcher_function($search_term, $search_id, 'image');
-        $results = single_image_search($search_term, $search_id, $wpdb);
+        $results = single_image_search($search_url, $search_id, $wpdb);
         wp_send_json_success(nl2br($results));
         // error_log(print_r($results, true));
     } else {
