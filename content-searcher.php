@@ -36,7 +36,14 @@ function content_searcher_menu()
 // enqueue scripts and styles
 function content_searcher_enqueue_scripts()
 {
+    wp_enqueue_script('content-searcher-ajax', plugin_dir_url(__FILE__) . 'assets/js/ajax.js', array('jquery'), '1.0.0', true);
+    wp_localize_script('content-searcher-ajax', 'ContentSearcherData', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('content_searcher_nonce'),
+    ));
+
     wp_enqueue_style('content-searcher-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css');
+
     wp_enqueue_script('content-searcher-scripts', plugin_dir_url(__FILE__) . 'assets/js/content-searcher.js', array('jquery'), '1.0.0', true);
 }
 add_action('admin_enqueue_scripts', 'content_searcher_enqueue_scripts');
@@ -78,83 +85,6 @@ function content_searcher_admin_page()
 
 
     </div>
-
-
-    <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            var image_frame;
-            $('#upload_button').click(function(e) {
-                e.preventDefault();
-                if (image_frame) {
-                    image_frame.open();
-                    return;
-                }
-                // Define image_frame as wp.media object
-                image_frame = wp.media({
-                    title: 'Select Media',
-                    multiple: false,
-                    library: {
-                        type: 'image',
-                    }
-                });
-
-                image_frame.on('select', function() {
-                    // Get selected image and set its URL to the input field
-                    var selection = image_frame.state().get('selection').first().toJSON();
-                    $('#image_url').val(selection.url);
-                    $('#image_id').val(selection.id);
-                });
-
-                image_frame.open();
-            });
-
-            $('#search_button').click(function() {
-            var searchType = $('#template_selector').val() ? 'template' :
-                ($('#gravity_form_selector').val() ? 'gravityform' : 'image');
-            // Update to include image ID in the search term when the search type is 'image'
-            var searchTerm = searchType === 'image' ? { url: $('#image_url').val(), id: $('#image_id').val() } :
-                (searchType === 'template' ? $('#template_selector').val() :
-                    $('#gravity_form_selector').val());
-
-            triggerSearch(searchType, searchTerm);
-        });
-            // Clear Button Click Event
-            $('#clear_button').click(function() {
-                // Clear the input fields and search results
-                $('#image_url').val('');
-                $('#image_id').val('');
-                $('#template_selector').prop('selectedIndex', 0);
-                $('#gravity_form_selector').prop('selectedIndex', 0);
-                $('#search_results').html('');
-            });
-
-            function triggerSearch(searchType, searchTerm) {
-            var data = {
-                action: 'search_content',
-                search_type: searchType
-            };
-            // Adjust data to include both URL and ID for image search
-            if (searchType === 'image') {
-                data.search_url = searchTerm.url;
-                data.search_id = searchTerm.id;
-            } else {
-                data.search_term = searchTerm; // Use search_term for non-image searches
-            }
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: data,
-                success: function(response) {
-                    // Display search results
-                    $('#search_results').html(response.data);
-                },
-                error: function(error) {
-                    console.log(error);
-                }
-            });
-        }
-    });
-    </script>
 
 
 
