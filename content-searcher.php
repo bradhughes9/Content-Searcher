@@ -83,7 +83,7 @@ function content_searcher_admin_page()
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             var image_frame;
-            $('#image_url').click(function(e) {
+            $('#upload_button').click(function(e) {
                 e.preventDefault();
                 if (image_frame) {
                     image_frame.open();
@@ -102,48 +102,58 @@ function content_searcher_admin_page()
                     // Get selected image and set its URL to the input field
                     var selection = image_frame.state().get('selection').first().toJSON();
                     $('#image_url').val(selection.url);
+                    $('#image_id').val(selection.id);
                 });
 
                 image_frame.open();
             });
 
             $('#search_button').click(function() {
-                var searchType = $('#template_selector').val() ? 'template' :
-                    ($('#gravity_form_selector').val() ? 'gravityform' : 'image');
-                var searchTerm = searchType === 'image' ? $('#image_url').val() :
-                    (searchType === 'template' ? $('#template_selector').val() :
-                        $('#gravity_form_selector').val());
+            var searchType = $('#template_selector').val() ? 'template' :
+                ($('#gravity_form_selector').val() ? 'gravityform' : 'image');
+            // Update to include image ID in the search term when the search type is 'image'
+            var searchTerm = searchType === 'image' ? { url: $('#image_url').val(), id: $('#image_id').val() } :
+                (searchType === 'template' ? $('#template_selector').val() :
+                    $('#gravity_form_selector').val());
 
-                triggerSearch(searchType, searchTerm);
-            });
+            triggerSearch(searchType, searchTerm);
+        });
             // Clear Button Click Event
             $('#clear_button').click(function() {
                 // Clear the input fields and search results
                 $('#image_url').val('');
+                $('#image_id').val('');
                 $('#template_selector').prop('selectedIndex', 0);
                 $('#gravity_form_selector').prop('selectedIndex', 0);
                 $('#search_results').html('');
             });
 
             function triggerSearch(searchType, searchTerm) {
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'search_content',
-                        search_type: searchType,
-                        search_term: searchTerm,
-                    },
-                    success: function(response) {
-                        // Display search results
-                        $('#search_results').html(response.data);
-                    },
-                    error: function(error) {
-                        console.log(error);
-                    }
-                });
+            var data = {
+                action: 'search_content',
+                search_type: searchType
+            };
+            // Adjust data to include both URL and ID for image search
+            if (searchType === 'image') {
+                data.search_url = searchTerm.url;
+                data.search_id = searchTerm.id;
+            } else {
+                data.search_term = searchTerm; // Use search_term for non-image searches
             }
-        });
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: data,
+                success: function(response) {
+                    // Display search results
+                    $('#search_results').html(response.data);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+    });
     </script>
 
 
@@ -154,19 +164,24 @@ function content_searcher_admin_page()
 // Handle AJAX request
 function handle_search_request()
 {
+    global $wpdb;
     // Security checks, e.g., check nonce here
 
     $search_type = isset($_POST['search_type']) ? sanitize_text_field($_POST['search_type']) : '';
     $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
+    $search_id = isset($_POST['search_id']) ? sanitize_text_field($_POST['search_id']) : '';
+
+    // error_log('Search Type: ' . $search_type);
+    // error_log('Search Term: ' . $search_term);
+    // error_log('Search ID: ' . $search_id);
 
     $available_search_types = ['image', 'template', 'gravityform'];
 
     if ('image' === $search_type) {
-        content_searcher_function($search_term, 'image');
-    } elseif ('template' === $search_type) {
-        content_searcher_function($search_term, 'template');
-    } elseif ('gravityform' === $search_type) {
-        content_searcher_function($search_term, 'gravityform');
+        // content_searcher_function($search_term, $search_id, 'image');
+        $results = single_image_search($search_term, $search_id, $wpdb);
+        wp_send_json_success(nl2br($results));
+        // error_log(print_r($results, true));
     } else {
         wp_send_json_error('Invalid search type');
     }
@@ -174,22 +189,23 @@ function handle_search_request()
     wp_die(); // Required to terminate immediately and return a proper response
 }
 
-function content_searcher_function($search_term, $search_type)
-{
-    global $wpdb;
 
-    if ('image' === $search_type) {
-        // Create a new instance of the SingleImageSearch class
-        $results = single_image_search($search_term, $wpdb);
-    } elseif ('gravityform' === $search_type) {
-        $results = single_form_search($search_term, $wpdb);
-    } elseif ('template' === $search_type) {
-        $results = single_template_search($search_term, $wpdb);
-    } else {
-        wp_send_json_error('Invalid search type');
-        return;
-    }
+// function content_searcher_function($search_term, $search_id = null, $search_type)
+// {
+//     global $wpdb;
 
-    // Send the successful response with results
-    wp_send_json_success(nl2br($results));
-}
+//     if ('image' === $search_type) {
+//         // Create a new instance of the SingleImageSearch class
+//         $results = single_image_search($search_term, $search_id, $wpdb);
+//     } elseif ('gravityform' === $search_type) {
+//         $results = single_form_search($search_term, $wpdb);
+//     } elseif ('template' === $search_type) {
+//         $results = single_template_search($search_term, $wpdb);
+//     } else {
+//         wp_send_json_error('Invalid search type');
+//         return;
+//     }
+
+//     // Send the successful response with results
+//     wp_send_json_success(nl2br($results));
+// }
